@@ -214,9 +214,8 @@ while True:
                     icon=folium.DivIcon(html=icon_html)
                 ).add_to(folium_map)
             
-            # Display map in Streamlit
-            map_html = folium_map._repr_html_()
-            components.html(map_html, height=500)
+            # Display updated map without causing JSON serialization issues
+            components.html(folium_map._repr_html_(), height=500)
 
         # 트럭 기사 안전운전 세부 조회 Section with Search Functionality
         st.markdown(
