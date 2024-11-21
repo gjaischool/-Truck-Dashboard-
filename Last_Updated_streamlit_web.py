@@ -10,11 +10,11 @@ import base64
 import os
 import threading
 
-# Font settings (you can remove this if no font customization is needed)
+# Font settings
 plt.rcParams['axes.unicode_minus'] = False  # Prevents minus symbol issues
 
 # Page configuration
-st.set_page_config(page_title="화물 차량 대시보드", layout="wide", page_icon=None, initial_sidebar_state="auto", menu_items=None)
+st.set_page_config(page_title="화물 차량 대시보드", layout="wide")
 
 # Load icons from specified paths
 def load_icon_as_base64(path):
@@ -27,34 +27,31 @@ icon_normal_path = "data/NO.png"
 icon_truck_path = "data/Truck.png"
 icon_driver_path = "data/Driver.png"
 
-# Encode the drowsy, normal, truck, and driver icons
+# Encode icons
 icon_drowsy_base64 = load_icon_as_base64(icon_drowsy_path)
 icon_normal_base64 = load_icon_as_base64(icon_normal_path)
 icon_truck_base64 = load_icon_as_base64(icon_truck_path)
 icon_driver_base64 = load_icon_as_base64(icon_driver_path)
 
 # Load CSV data
-csv_path = "data/Dashboard_downloadable.csv"  # Updated path to use uploaded CSV file
+csv_path = "data/Dashboard_downloadable.csv"
 try:
     df = pd.read_csv(csv_path)
     df.columns = df.columns.str.strip()  # Remove leading/trailing whitespace from column names
 except FileNotFoundError:
     st.error("CSV 파일을 찾을 수 없습니다. 파일 경로를 확인해주세요.")
-    df = pd.DataFrame()  # Create an empty dataframe to prevent further errors
+    df = pd.DataFrame()
 
 # Real-time updating section with a placeholder for the entire dashboard
 placeholder = st.empty()
 
 # Initialize map with folium
-initial_location = [35.1595, 126.8526]  # Gwangju, South Korea (as in the example image)
-map_placeholder = st.empty()
+initial_location = [35.1595, 126.8526]  # Gwangju, South Korea
 
-# Generate driver information for display using correct English column names
+# Driver data extraction
 if not df.empty:
     df.columns = df.columns.str.lower().str.replace(' ', '_')  # Normalize column names
-    driver_data = df[[
-        'car_number', 'name', 'locate', 'driving_distance', 'driving_time', 'safe_score', 'drawniess_detection'
-    ]].to_dict(orient='records')
+    driver_data = df[['car_number', 'name', 'locate', 'driving_distance', 'driving_time', 'safe_score', 'drawniess_detection']].to_dict(orient='records')
 else:
     driver_data = []
 
@@ -75,10 +72,9 @@ while True:
         # Display current time
         now = datetime.now()
         st.image('data/truck11.jpg', use_container_width=True)
-        
         st.markdown(f"<p style='color: black;'>현재 시간: {now.strftime('%Y.%m.%d %H:%M:%S')}</p>", unsafe_allow_html=True)
 
-        # Add new section header for 전체 운전자 통계 with updated color
+        # 전체 운전자 통계 header
         st.markdown(
             """
             <div style='background-color: #87CEEB; padding: 10px;'>
@@ -133,47 +129,45 @@ while True:
         # Safe Driving Status Graph
         with col2:
             st.markdown("<h2 style='color: black;'>운전 상태</h2>", unsafe_allow_html=True)
-            drowsy_placeholder = st.empty()
             drowsy, safe = np.random.randint(0, 100, 2)
-            fig, ax = plt.subplots(figsize=(4, 3))  # Adjust the figure size for better display
+            fig, ax = plt.subplots(figsize=(4, 3))
             ax.bar(["Drowsy", "Safe"], [drowsy, safe], color=['#1f77b4', '#17becf'])
-            ax.set_ylim(0, 100)  # Set Y-axis limits to reflect percentages
+            ax.set_ylim(0, 100)
             ax.set_facecolor('white')
-            fig.patch.set_facecolor('white')  # Set figure background color to white
-            ax.tick_params(axis='x', labelsize=8, colors='black')  # Set tick label color to black
+            fig.patch.set_facecolor('white')
+            ax.tick_params(axis='x', labelsize=8, colors='black')
             ax.tick_params(axis='y', labelsize=8, colors='black')
-            ax.title.set_color('black')
-            drowsy_placeholder.pyplot(fig)
+            st.pyplot(fig)
             plt.close(fig)
 
         # Safety Score Statistics Pie Chart
         with col3:
             st.markdown("<h2 style='color: black;'>안전 점수 분포</h2>", unsafe_allow_html=True)
-            score_placeholder = st.empty()
             labels = ["80-100", "60-79", "26-59", "0-25"]
             score_ranges = [np.random.randint(0, 50) for _ in range(4)]
-            fig, ax = plt.subplots(figsize=(4, 3))  # Adjust the figure size for better display
-            ax.pie(score_ranges, labels=labels, autopct='%1.1f%%', startangle=90, colors=['#1f77b4', '#aec7e8', '#17becf', '#9edae5'], textprops={'fontsize': 7, 'color': 'black'})
+            fig, ax = plt.subplots(figsize=(4, 3))
+            ax.pie(score_ranges, labels=labels, autopct='%1.1f%%', startangle=90,
+                   colors=['#1f77b4', '#aec7e8', '#17becf', '#9edae5'],
+                   textprops={'fontsize': 7, 'color': 'black'})
             ax.axis('equal')
             ax.set_facecolor('white')
-            fig.patch.set_facecolor('white')  # Set figure background color to white
-            score_placeholder.pyplot(fig)
+            fig.patch.set_facecolor('white')
+            st.pyplot(fig)
             plt.close(fig)
 
         # Driving Information Vertical Bar Graph
         with col4:
             st.markdown("<h2 style='color: black;'>운행 정보</h2>", unsafe_allow_html=True)
-            distance_placeholder = st.empty()
             today_dist, yesterday_dist = np.random.randint(0, 100, 2)
-            fig, ax = plt.subplots(figsize=(5, 4))  # Increase the figure size to avoid clipping
-            ax.barh(["Today's Distance", "Yesterday's Distance"], [today_dist, yesterday_dist], color=['#1f77b4', '#17becf'])  # Set specific percentages for 'Driving distance'
-            ax.set_xlim(0, 100)  # Set X-axis limits to reflect percentages
+            fig, ax = plt.subplots(figsize=(5, 4))
+            ax.barh(["Today's Distance", "Yesterday's Distance"], [today_dist, yesterday_dist],
+                    color=['#1f77b4', '#17becf'])
+            ax.set_xlim(0, 100)
             ax.set_facecolor('white')
-            fig.patch.set_facecolor('white')  # Set figure background color to white
+            fig.patch.set_facecolor('white')
             ax.tick_params(axis='x', labelsize=8, colors='black')
             ax.tick_params(axis='y', labelsize=8, colors='black')
-            ax.title.set_color('black')
-            distance_placeholder.pyplot(fig)
+            st.pyplot(fig)
             plt.close(fig)
 
         # 운전자 정보 and Map in One Row with scrollbar for long list
@@ -187,7 +181,7 @@ while True:
                 if driver_data:
                     driver_info_html = "<div style='height: 500px; overflow-y: auto; scrollbar-width: thick; scrollbar-color: gray lightgray;'>"
                     for driver in driver_data:
-                        icon_base64 = icon_normal_base64
+                        icon_base64 = icon_normal_base64 if driver['drawniess_detection'] == 0 else icon_drowsy_base64
                         driver_html = f"<div style='display: flex; align-items: center; margin-bottom: 10px; color: black;'>"
                         driver_html += f"<img src='data:image/png;base64,{icon_base64}' style='width:30px;height:30px;margin-right:10px;'>"
                         driver_html += f"<div><strong>{driver['car_number']}</strong><br>{driver['name']} ({driver['locate']})</div></div>"
@@ -202,7 +196,7 @@ while True:
                 st.markdown("<div style='text-align: center; color: black; font-size: 1em; padding: 5px; border: 1px solid #ccc; display: inline-block;'>직선 구간 3km 이상시에만 졸음 탐지 기능 활성화</div>", unsafe_allow_html=True)
             folium_map = folium.Map(location=initial_location, zoom_start=12)
             
-            # Randomly generate locations along highways around Gwangju for vehicle icons
+            # Update map markers
             for i in range(13):
                 random_location = [
                     initial_location[0] + np.random.uniform(-0.1, 0.1),
@@ -256,24 +250,21 @@ while True:
                         fig, ax = plt.subplots(figsize=(5, 3))
                         ax.bar(labels, values, color='#1f77b4')
                         ax.set_facecolor('white')
-                        fig.patch.set_facecolor('white')  # Set figure background color to white
+                        fig.patch.set_facecolor('white')
                         ax.set_xlabel("Category", fontsize=8, color='black')
                         ax.set_ylabel("Value", fontsize=8, color='black')
                         ax.tick_params(axis='x', labelsize=8, colors='black')
                         ax.tick_params(axis='y', labelsize=8, colors='black')
-                        plt.close(fig)  # Close the figure to prevent warning
+                        plt.close(fig)
                         st.pyplot(fig)
 
-    # Hide the pink box at the bottom with additional vertical spacing
-    st.markdown(
-        """
-        <div style='height: 1000px;'></div>  <!-- Add vertical spacing to push pink box down -->
-        <div style='background-color: white; color: white; padding: 10px;'>
-            <pre> </pre>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
+        # Add a long white box to push the pink box further down
+        st.markdown(
+            """
+            <div style='height: 2000px;'></div>  <!-- Add vertical spacing to push pink box down -->
+            """,
+            unsafe_allow_html=True
+        )
+
     # Delay to simulate real-time updates
     time.sleep(5)
